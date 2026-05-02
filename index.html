@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Foto Fast"/>
+<title>Foto Fast SpA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F4F5F7; --surface: #FFFFFF; --sidebar: #0D1117;
+    --accent: #E67E22; --accent2: #F39C12; --text: #0D1117;
+    --muted: #6B7280; --border: #E5E7EB;
+    --green: #10B981; --red: #EF4444; --blue: #3B82F6;
+    --yellow: #F59E0B; --purple: #8B5CF6; --radius: 12px;
+    --shadow: 0 1px 6px rgba(0,0,0,0.08); --sidebar-w: 220px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .app { display: flex; min-height: 100vh; }
+  .sidebar { width: var(--sidebar-w); background: var(--sidebar); flex-shrink: 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 200; transition: transform 0.3s ease; }
+  .main { margin-left: var(--sidebar-w); flex: 1; padding: 28px; min-height: 100vh; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; }
+  .overlay.show { display: block; }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; padding: 16px; padding-bottom: 80px; }
+    .topbar { display: flex !important; }
+    .bottom-nav { display: flex !important; }
+  }
+  .topbar { display: none; position: sticky; top: 0; z-index: 100; background: var(--sidebar); padding: 14px 16px; align-items: center; gap: 14px; margin: -16px -16px 16px; }
+  .topbar-title { font-family: 'DM Serif Display', serif; color: var(--accent); font-size: 18px; flex: 1; }
+  .hamburger { background: none; border: none; cursor: pointer; color: #fff; padding: 4px; }
+  .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--sidebar); padding: 8px 0 env(safe-area-inset-bottom, 8px); z-index: 100; border-top: 1px solid #1e2530; }
+  .bottom-nav-inner { display: flex; justify-content: space-around; }
+  .bnav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; cursor: pointer; padding: 6px 12px; color: #5a6478; font-family: inherit; font-size: 10px; font-weight: 600; transition: color 0.15s; }
+  .bnav-btn.active { color: var(--accent); }
+  .sb-logo { padding: 24px 20px 20px; border-bottom: 1px solid #1e2530; }
+  .sb-logo-name { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--accent); }
+  .sb-logo-sub { font-size: 10px; color: #3a4455; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 2px; }
+  .sb-nav { flex: 1; padding: 14px 0; overflow-y: auto; }
+  .sb-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 20px; background: none; border: none; cursor: pointer; color: #8892a4; font-size: 14px; font-weight: 500; font-family: inherit; transition: all 0.15s; text-align: left; }
+  .sb-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+  .sb-btn.active { color: #fff; background: var(--accent); }
+  .sb-footer { padding: 16px 20px; border-top: 1px solid #1e2530; text-align: center; }
+  .sb-footer-label { font-size: 10px; color: #3a4455; }
+  .sb-footer-val { font-size: 14px; font-weight: 700; color: var(--accent); margin-top: 2px; }
+  .card { background: var(--surface); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .stat-card { border-left: 4px solid; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  @media (max-width: 900px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } .grid-2 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr 1fr; } }
+  .stat-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .stat-value { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  .stat-sub { font-size: 12px; color: var(--muted); }
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--text); }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; font-family: inherit; white-space: nowrap; }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-outline-blue { background: transparent; color: var(--blue); border-color: var(--blue); }
+  .btn-outline-red { background: transparent; color: var(--red); border-color: var(--red); }
+  .btn-outline-green { background: transparent; color: var(--green); border-color: var(--green); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .item-row { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 10px; display: flex; gap: 14px; align-items: flex-start; }
+  .item-row-body { flex: 1; min-width: 0; }
+  .item-row-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+  .item-name { font-weight: 700; font-size: 15px; color: var(--text); margin-bottom: 4px; }
+  .item-meta { font-size: 12px; color: var(--muted); }
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .form-input, .form-select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; color: var(--text); outline: none; transition: border-color 0.2s; background: #fff; }
+  .form-input:focus, .form-select:focus { border-color: var(--accent); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(10,14,20,0.65); backdrop-filter: blur(4px); z-index: 500; display: flex; align-items: flex-end; justify-content: center; }
+  @media (min-width: 600px) { .modal-backdrop { align-items: center; padding: 20px; } .modal-box { border-radius: var(--radius) !important; max-height: 90vh !important; } }
+  .modal-box { background: #fff; width: 100%; max-width: 540px; border-radius: 16px 16px 0 0; max-height: 92vh; overflow-y: auto; box-shadow: 0 -4px 40px rgba(0,0,0,0.2); animation: slideUp 0.25s ease; }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 20px 16px; border-bottom: 1px solid var(--border); }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 18px; }
+  .modal-body { padding: 20px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+  .total-box { background: #FFF8F0; border: 2px solid var(--accent); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-weight: 800; font-size: 18px; color: var(--accent); }
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+  .tx-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid #f5f5f5; }
+  .tx-amount { font-weight: 700; font-size: 15px; }
+  .btn-wa { background: #25D366; color: #fff; border-color: #25D366; }
+  .loading { display: flex; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; color: var(--muted); font-size: 15px; }
+  .spinner { width: 24px; height: 24px; border: 3px solid #eee; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #0D1117; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 9999; animation: fadeToast 2.5s ease forwards; }
+  @keyframes fadeToast { 0%,80%{opacity:1;} 100%{opacity:0;} }
+  @media (min-width: 769px) { .toast { bottom: 24px; } }
+  .sync-bar { background: #FFF8F0; border-bottom: 2px solid var(--accent); padding: 8px 20px; font-size: 12px; color: var(--accent); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+  .tag-iva { background: #EFF6FF; color: #3B82F6; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .rut-label { font-size: 11px; color: #999; font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-name">Foto Fast</div>
+      <div class="sb-logo-sub">SpA · Gestión</div>
+    </div>
+    <nav class="sb-nav" id="deskNav"></nav>
+    <div class="sb-footer">
+      <div class="sb-footer-label">Conectado a Google Sheets</div>
+      <div class="sb-footer-val" id="syncStatus">🔄 Sincronizando...</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="openSidebar()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+      <div class="topbar-title">Foto Fast SpA</div>
+    </div>
+    <div id="content"></div>
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner" id="mobileNav"></div>
+  </nav>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const SHEET_ID = '1xx2zI5uR8OL55m5WYbAZo9N0pAoIv2vIR82NZ8jqrcQ';
+const API = 'https://script.google.com/macros/s/AKfycbwnVa9Uv85nOZZ0ZtdwV1ZcbMyKtfp5hGHVwzSfkHIHO3UDKCKWpj9_AXSB5CKiXjm3/exec';
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let state = {
+  tab: 'dashboard',
+  clientes: [], proveedores: [], productos: [],
+  compras: [], ventas: [], resumen: [],
+  loading: true, lastSync: null,
+  catalogFilter: 'Todos',
+  catalogSearch: '',
+  cotizacion: {
+    numero: '', fecha: '', validez: '30',
+    clienteNombre: '', clienteRUT: '', clienteEmail: '',
+    clienteTel: '', clienteDireccion: '', notas: '',
+    items: []
+  },
+  cotBusqueda: '',
+  cotTab: 'nueva',
+  cotHistorial: JSON.parse(localStorage.getItem('ff_cotizaciones') || '[]'),
+};
+
+function saveHistorial() {
+  localStorage.setItem('ff_cotizaciones', JSON.stringify(state.cotHistorial));
+}
+
+function cotGuardar() {
+  const c = state.cotizacion;
+  if (!c.clienteNombre.trim() && c.items.length === 0) {
+    toast('⚠️ Agrega cliente y productos antes de guardar'); return;
+  }
+  const neto  = c.items.reduce((s,i) => s + i.cantidad * i.precio, 0);
+  const iva   = Math.round(neto * 0.19);
+  const total = neto + iva;
+  const entrada = {
+    id: Date.now(),
+    numero: c.numero || 'S/N',
+    fecha: c.fecha || new Date().toISOString().split('T')[0],
+    validez: c.validez || '30',
+    clienteNombre: c.clienteNombre,
+    clienteRUT: c.clienteRUT,
+    clienteEmail: c.clienteEmail,
+    clienteTel: c.clienteTel,
+    clienteDireccion: c.clienteDireccion,
+    notas: c.notas,
+    items: JSON.parse(JSON.stringify(c.items)),
+    neto, iva, total,
+    estado: 'Borrador',
+    creadoEn: new Date().toLocaleString('es-CL'),
+  };
+  state.cotHistorial.unshift(entrada);
+  saveHistorial();
+  state.cotTab = 'historial';
+  toast('✅ Cotización guardada en historial');
+  render();
+}
+
+function cotCambiarEstado(id, nuevoEstado) {
+  const idx = state.cotHistorial.findIndex(c => c.id === id);
+  if (idx >= 0) { state.cotHistorial[idx].estado = nuevoEstado; saveHistorial(); render(); }
+}
+
+function cotEliminarHistorial(id) {
+  if (!confirm('¿Eliminar esta cotización del historial?')) return;
+  state.cotHistorial = state.cotHistorial.filter(c => c.id !== id);
+  saveHistorial(); render();
+}
+
+function cotRecargar(id) {
+  const c = state.cotHistorial.find(c => c.id === id);
+  if (!c) return;
+  state.cotizacion = {
+    numero: c.numero, fecha: c.fecha, validez: c.validez,
+    clienteNombre: c.clienteNombre, clienteRUT: c.clienteRUT,
+    clienteEmail: c.clienteEmail, clienteTel: c.clienteTel,
+    clienteDireccion: c.clienteDireccion, notas: c.notas,
+    items: JSON.parse(JSON.stringify(c.items)),
+  };
+  state.cotTab = 'nueva';
+  toast('📋 Cotización cargada para editar');
+  render();
+}
+
+function cotDescargarHistorial(id) {
+  const c = state.cotHistorial.find(c => c.id === id);
+  if (!c) return;
+  const prev = state.cotizacion;
+  state.cotizacion = c;
+  cotGenerarPDF();
+  state.cotizacion = prev;
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+const clp = n => '$' + Math.round(n||0).toLocaleString('es-CL');
+const parseCLP = v => { if(typeof v==='number') return v; const s=String(v||'').replace(/\$/g,'').replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.'); return parseFloat(s)||0; };
+const today = () => new Date().toISOString().split('T')[0];
+const statusColor = { prospecto:'#F59E0B', activo:'#10B981', inactivo:'#9CA3AF', Pendiente:'#F59E0B', Pagado:'#10B981', Parcial:'#3B82F6', Anulado:'#9CA3AF' };
+
+function badge(text, color) {
+  return `<span class="badge" style="background:${color}20;color:${color}">${text||''}</span>`;
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+function svgIcon(path, size=20) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor"><path d="${path}"/></svg>`;
+}
+
+// ─── API (Google Visualization — sin CORS) ────────────────────────────────────
+async function fetchSheet(sheetName) {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+    const r = await fetch(url);
+    const text = await r.text();
+    const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+    if (!match) return [];
+    const data = JSON.parse(match[1]);
+    const table = data.table;
+    if (!table || !table.cols || !table.rows) return [];
+    const headers = table.cols.map(c => c.label || c.id);
+    const rows = table.rows
+      .map(r => {
+        const obj = {};
+        headers.forEach((h, i) => {
+          const cell = r.c ? r.c[i] : null;
+          obj[h] = cell ? (cell.v !== null && cell.v !== undefined ? cell.v : '') : '';
+        });
+        return obj;
+      })
+      .filter(r => Object.values(r).some(v => v !== '' && v !== null && v !== 0));
+    return rows;
+  } catch(e) {
+    console.error('Error fetching', sheetName, e);
+    return [];
+  }
+}
+
+async function appendRow(sheet, row) {
+  try {
+    await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({ sheet, action: 'append', row }),
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    return true;
+  } catch(e) {
+    console.error('Error appending', e);
+    return false;
+  }
+}
+
+async function syncAll() {
+  document.getElementById('syncStatus').textContent = '🔄 Cargando...';
+  const [clientes, proveedores, productos, compras, ventas, resumen] = await Promise.all([
+    fetchSheet('Clientes'), fetchSheet('Proveedores'), fetchSheet('Productos'),
+    fetchSheet('Compras'), fetchSheet('Ventas'), fetchSheet('ResumenMensual')
+  ]);
+  state.clientes = clientes;
+  state.proveedores = proveedores;
+  state.productos = productos;
+  state.compras = compras.filter(c => c['ID Compra'] && c['Proveedor']);
+  state.ventas = ventas.filter(v => v['ID Venta'] && v['Cliente']);
+  state.resumen = resumen.filter(r => r['Mes']);
+  state.loading = false;
+  state.lastSync = new Date();
+  const now = state.lastSync.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('syncStatus').textContent = `✅ Sync ${now}`;
+  render();
+}
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+const TABS = [
+  { id:'dashboard', label:'Panel', icon:'M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z' },
+  { id:'catalogo',  label:'Catálogo', icon:'M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z' },
+  { id:'cotizacion', label:'Cotizar', icon:'M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8zm0-4h8v2H8zm0-4h5v2H8z' },
+  { id:'clientes',  label:'Clientes', icon:'M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z' },
+  { id:'ventas',    label:'Ventas', icon:'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z' },
+  { id:'compras',   label:'Compras', icon:'M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.1 17 7.5 17H19v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H15c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0019.5 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2z' },
+  { id:'resumen',   label:'Resumen', icon:'M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z' },
+];
+
+function renderNav() {
+  document.getElementById('deskNav').innerHTML = TABS.map(t =>
+    `<button class="sb-btn ${state.tab===t.id?'active':''}" onclick="setTab('${t.id}')">
+      ${svgIcon(t.icon,18)} ${t.label}
+    </button>`).join('');
+  document.getElementById('mobileNav').innerHTML = TABS.map(t =>
+    `<button class="bnav-btn ${state.tab===t.id?'active':''}" onclick="setTab('${t.id}')">
+      ${svgIcon(t.icon,20)} ${t.label}
+    </button>`).join('');
+}
+
+function setTab(id) { state.tab = id; closeSidebar(); render(); }
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+function modal(title, bodyHTML) {
+  const ex = document.getElementById('modal-backdrop'); if(ex) ex.remove();
+  const el = document.createElement('div');
+  el.id = 'modal-backdrop'; el.className = 'modal-backdrop';
+  el.innerHTML = `<div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">${title}</div>
+      <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;color:#999;padding:4px">
+        ${svgIcon('M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',20)}
+      </button>
+    </div>
+    <div class="modal-body">${bodyHTML}</div>
+  </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', e => { if(e.target===el) closeModal(); });
+}
+function closeModal() { const m=document.getElementById('modal-backdrop'); if(m) m.remove(); }
+
+function fg(label, inputHTML) { return `<div class="form-group"><label class="form-label">${label}</label>${inputHTML}</div>`; }
+function inp(id, type, val='', ph='') { return `<input class="form-input" id="${id}" type="${type}" value="${val}" placeholder="${ph}"/>`; }
+function sel(id, opts, val) { return `<select class="form-select" id="${id}">${opts.map(o=>`<option value="${o.v}" ${o.v==val?'selected':''}>${o.l}</option>`).join('')}</select>`; }
+function gv(id) { const el=document.getElementById(id); return el?el.value:''; }
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  if(state.loading) return '<div class="loading"><div class="spinner"></div> Cargando datos desde Google Sheets...</div>';
+
+  const totalVentas = state.ventas.reduce((s,v) => s+(parseFloat(v['Total'])||0), 0);
+  const totalCompras = state.compras.reduce((s,c) => s+(parseFloat(c['Total'])||0), 0);
+  const ventasPendientes = state.ventas.filter(v => v['Estado Cobro']==='Pendiente').length;
+  const utilidad = (state.ventas.reduce((s,v)=>s+(parseFloat(v['Neto'])||0),0)) - (state.compras.reduce((s,c)=>s+(parseFloat(c['Neto'])||0),0));
+
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  function getDate(val) {
+    if (!val) return null;
+    if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000));
+    return new Date(val);
+  }
+
+  const ventasMes = state.ventas.filter(v => {
+    const d = getDate(v['Fecha Emisión']);
+    return d && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+  const comprasMes = state.compras.filter(c => {
+    const d = getDate(c['Fecha Documento']);
+    return d && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+
+  const vNetoMes = ventasMes.reduce((s,v) => s+(parseFloat(v['Neto'])||0), 0);
+  const vIVAMes = ventasMes.reduce((s,v) => s+(parseFloat(v['IVA'])||0), 0);
+  const vTotalMes = ventasMes.reduce((s,v) => s+(parseFloat(v['Total'])||0), 0);
+  const cNetoMes = comprasMes.reduce((s,c) => s+(parseFloat(c['Neto'])||0), 0);
+  const cIVAMes = comprasMes.reduce((s,c) => s+(parseFloat(c['IVA'])||0), 0);
+  const cTotalMes = comprasMes.reduce((s,c) => s+(parseFloat(c['Total'])||0), 0);
+  const resultadoMes = vNetoMes - cNetoMes;
+
+  const recentVentas = [...state.ventas].slice(-5).reverse();
+
+  return `
+    <div class="page-header"><h1 class="page-title">Panel Principal</h1>
+      <button class="btn btn-primary" onclick="syncAll()" style="font-size:13px;padding:8px 14px">🔄 Actualizar</button>
+    </div>
+    <div class="grid-4">
+      ${statCard('Total Ventas', clp(totalVentas), `${state.ventas.length} ventas registradas`, '#10B981')}
+      ${statCard('Total Compras', clp(totalCompras), `${state.compras.length} compras registradas`, '#EF4444')}
+      ${statCard('Utilidad Neta', clp(utilidad), 'Ventas neto − Compras neto', utilidad>=0?'#10B981':'#EF4444')}
+      ${statCard('Cobros Pendientes', ventasPendientes, 'Ventas sin cobrar', '#F59E0B')}
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title">Últimas Ventas</div>
+        ${recentVentas.length===0 ? '<p style="color:var(--muted);font-size:14px">Sin ventas aún</p>' :
+          recentVentas.map(v=>`
+            <div class="tx-row">
+              <div>
+                <div style="font-weight:700;font-size:14px">${v['Cliente']||''}</div>
+                <div style="font-size:12px;color:var(--muted)">${v['Detalle']||''} · ${v['Tipo Documento']||''}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:700;color:var(--accent)">${clp(v['Total'])}</div>
+                ${badge(v['Estado Cobro']||'', statusColor[v['Estado Cobro']]||'#999')}
+              </div>
+            </div>`).join('')}
+      </div>
+      <div class="card">
+        <div class="section-title">📅 Resumen ${meses[currentMonth]} ${currentYear}</div>
+        ${ventasMes.length===0 && comprasMes.length===0
+          ? '<p style="color:var(--muted);font-size:14px">Sin movimientos este mes</p>'
+          : `
+          ${[
+            {l:'Ventas Neto', v:vNetoMes, c:'#10B981'},
+            {l:'IVA Ventas (19%)', v:vIVAMes, c:'#3B82F6'},
+            {l:'Total Ventas', v:vTotalMes, c:'#10B981', bold:true},
+            {l:'──────', v:'', c:'#eee'},
+            {l:'Compras Neto', v:cNetoMes, c:'#EF4444'},
+            {l:'IVA Compras (19%)', v:cIVAMes, c:'#F59E0B'},
+            {l:'Total Compras', v:cTotalMes, c:'#EF4444', bold:true},
+            {l:'──────', v:'', c:'#eee'},
+            {l:'Resultado del Mes', v:resultadoMes, c:resultadoMes>=0?'#10B981':'#EF4444', bold:true},
+          ].map(r=>r.l.includes('──')
+            ? `<div style="border-bottom:1px solid #f0f0f0;margin:4px 0"></div>`
+            : `<div class="tx-row">
+                <span style="font-size:13px;color:#555;font-weight:${r.bold?700:400}">${r.l}</span>
+                <span style="font-weight:${r.bold?800:600};color:${r.c}">${r.v===''?'':clp(r.v)}</span>
+              </div>`
+          ).join('')}
+          <div style="margin-top:10px;font-size:11px;color:#999">
+            ${ventasMes.length} venta(s) · ${comprasMes.length} compra(s) este mes
+          </div>`}
+        <div style="margin-top:8px;font-size:11px;color:#bbb">Datos directos desde tu Google Sheets ✅</div>
+      </div>
+    </div>`;
+}
+
+function statCard(label, value, sub, color) {
+  return `<div class="card stat-card" style="border-left-color:${color}">
+    <div class="stat-label">${label}</div>
+    <div class="stat-value" style="color:${color}">${value}</div>
+    <div class="stat-sub">${sub}</div>
+  </div>`;
+}
+
+// ─── Clientes ─────────────────────────────────────────────────────────────────
+function renderClientes() {
+  if(state.loading) return loadingHTML();
+  const { clientes } = state;
+  return `
+    <div class="page-header">
+      <h1 class="page-title">Clientes</h1>
+      <button class="btn btn-primary" onclick="openClienteModal()">
+        ${svgIcon('M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',16)} Agregar
+      </button>
+    </div>
+    ${clientes.length===0
+      ? `<div class="empty"><p>Sin clientes en el Sheets. Agrega uno desde aquí o directo en Google Sheets.</p></div>`
+      : clientes.map(c=>`
+        <div class="item-row">
+          <div class="item-row-body">
+            <div class="item-name">${c['Cliente / Razón Social']||''} ${c['Giro']?badge(c['Giro'].substring(0,20)+'…','#3B82F6'):''}</div>
+            <div class="rut-label">RUT: ${c['RUT']||'—'}</div>
+            <div class="item-meta" style="margin-top:4px">
+              ${c['Contacto']?'👤 '+c['Contacto']:''}
+              ${c['Teléfono']?'  📱 '+c['Teléfono']:''}
+              ${c['Email']?'  ✉️ '+c['Email']:''}
+            </div>
+            ${c['Observaciones']?`<div class="item-meta" style="font-style:italic;margin-top:3px">${c['Observaciones']}</div>`:''}
+          </div>
+          <div class="item-row-actions">
+            ${c['Teléfono']?`<button class="btn btn-wa btn-sm" onclick="window.open('https://wa.me/56${String(c['Teléfono']).replace(/\D/g,'')}','_blank')">WA</button>`:''}
+          </div>
+        </div>`).join('')}
+    <div style="margin-top:16px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:13px;color:#666">
+      💡 Para agregar clientes con RUT, dirígete directamente a tu <b>Google Sheets → pestaña Clientes</b>. Los cambios aparecerán aquí al presionar Actualizar.
+    </div>`;
+}
+
+function openClienteModal() {
+  const html = `
+    ${fg('Nombre / Razón Social *', inp('cn','text','','Colegio San Martín'))}
+    ${fg('RUT', inp('cr','text','','12.345.678-9'))}
+    ${fg('Contacto', inp('cc','text','','Nombre persona'))}
+    ${fg('Teléfono (sin +56)', inp('ct','tel','','9XXXXXXXX'))}
+    ${fg('Email', inp('ce','email','','correo@colegio.cl'))}
+    ${fg('Dirección', inp('cd','text','','Dirección del establecimiento'))}
+    ${fg('Observaciones', inp('co','text','','Notas adicionales'))}
+    <div class="modal-footer">
+      <button class="btn" style="background:#f5f5f5;border-color:#f5f5f5;color:#666" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCliente()">Guardar en Sheets</button>
+    </div>`;
+  modal('Nuevo Cliente', html);
+}
+
+async function saveCliente() {
+  const name = gv('cn').trim();
+  if(!name) return alert('El nombre es obligatorio');
+  const row = [name, gv('cr'), '', gv('cd'), '', '', gv('cc'), gv('ce'), gv('ct'), ''];
+  toast('💾 Guardando en Google Sheets...');
+  await appendRow('Clientes', row);
+  closeModal();
+  await syncAll();
+  toast('✅ Cliente guardado en Google Sheets');
+}
+
+// ─── Ventas ───────────────────────────────────────────────────────────────────
+function renderVentas() {
+  if(state.loading) return loadingHTML();
+  const { ventas } = state;
+  return `
+    <div class="page-header">
+      <h1 class="page-title">Ventas</h1>
+      <button class="btn btn-primary" onclick="openVentaModal()">
+        ${svgIcon('M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',16)} Nueva Venta
+      </button>
+    </div>
+    ${ventas.length===0
+      ? `<div class="empty"><p>Sin ventas registradas</p></div>`
+      : [...ventas].reverse().map(v=>`
+        <div class="item-row">
+          <div class="item-row-body">
+            <div class="item-name">
+              ${v['Cliente']||''}
+              <span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:8px">${formatDate(v['Fecha Emisión'])}</span>
+              ${badge(v['Estado Cobro']||'', statusColor[v['Estado Cobro']]||'#999')}
+            </div>
+            <div class="rut-label">RUT: ${v['RUT Cliente']||'—'} · Folio: ${v['Folio']||'—'} · ${v['Tipo Documento']||''}</div>
+            <div class="item-meta" style="margin-top:4px">
+              ${v['Detalle']?'📦 '+v['Detalle']:''}
+              ${v['Canal']?' · Canal: '+v['Canal']:''}
+              ${v['Medio Cobro']?' · '+v['Medio Cobro']:''}
+            </div>
+            <div style="margin-top:6px;display:flex;gap:12px;flex-wrap:wrap">
+              <span style="font-size:13px;color:#555">Neto: <b>${clp(v['Neto'])}</b></span>
+              <span class="tag-iva">IVA: ${clp(v['IVA'])}</span>
+              <span style="font-size:15px;font-weight:800;color:var(--accent)">Total: ${clp(v['Total'])}</span>
+            </div>
+          </div>
+        </div>`).join('')}
+    <div style="margin-top:16px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:13px;color:#666">
+      💡 Para registrar ventas con folio y DTE, usa directamente tu <b>Google Sheets → pestaña Ventas</b>.
+    </div>`;
+}
+
+function openVentaModal() {
+  const clienteOpts = [{v:'',l:'— Selecciona cliente —'}, ...state.clientes.map(c=>({v:c['Cliente / Razón Social'],l:c['Cliente / Razón Social']}))];
+  const prodOpts = [{v:'',l:'— Selecciona producto —'}, ...state.productos.map(p=>({v:p['Producto/Servicio'],l:p['Producto/Servicio']+' ('+p['Unidad']+')'}) )];
+  const html = `
+    ${fg('Cliente *', sel('vc',clienteOpts,''))}
+    ${fg('Producto *', sel('vp',prodOpts,''))}
+    <div class="form-row">
+      ${fg('Cantidad *', inp('vq','number','1'))}
+      ${fg('Precio unitario (CLP) *', inp('vup','number','0'))}
+    </div>
+    <div class="total-box" id="ventaTotal">Total: $0</div>
+    ${fg('Tipo Documento', sel('vt',[{v:'Boleta',l:'Boleta'},{v:'Factura Electrónica',l:'Factura Electrónica'},{v:'Guía de Despacho',l:'Guía de Despacho'}],'Boleta'))}
+    ${fg('Canal', sel('vca',[{v:'Presencial',l:'Presencial'},{v:'Redes Sociales',l:'Redes Sociales'},{v:'WhatsApp',l:'WhatsApp'},{v:'B2B',l:'B2B'}],'Presencial'))}
+    ${fg('Fecha', inp('vf','date',today()))}
+    ${fg('Observaciones', inp('vo','text','',''))}
+    <div class="modal-footer">
+      <button class="btn" style="background:#f5f5f5;border-color:#f5f5f5;color:#666" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveVenta()">Guardar en Sheets</button>
+    </div>`;
+  modal('Nueva Venta', html);
+  setTimeout(()=>{
+    ['vq','vup'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.addEventListener('input', ()=>{
+        const q=parseFloat(document.getElementById('vq')?.value)||0;
+        const p=parseFloat(document.getElementById('vup')?.value)||0;
+        const total=q*p; const neto=Math.round(total/1.19); const iva=total-neto;
+        const el2=document.getElementById('ventaTotal');
+        if(el2) el2.textContent=`Neto: ${clp(neto)} + IVA: ${clp(iva)} = Total: ${clp(total)}`;
+      });
+    });
+  },100);
+}
+
+async function saveVenta() {
+  const cliente=gv('vc'); const prod=gv('vp');
+  const qty=parseFloat(gv('vq')); const up=parseFloat(gv('vup'));
+  if(!cliente||!prod||!qty||!up) return alert('Completa todos los campos obligatorios');
+  const total=qty*up; const neto=Math.round(total/1.19); const iva=total-neto;
+  const clienteData = state.clientes.find(c=>c['Cliente / Razón Social']===cliente);
+  const nextId = state.ventas.length + 1;
+  const row = [nextId, gv('vf'), cliente, clienteData?.['RUT']||'', gv('vt'), '', gv('vca'), `${prod} x${qty}`, neto, '', 'S', iva, total, 'Pendiente', '', '', '', '', '', gv('vo')];
+  toast('💾 Guardando en Google Sheets...');
+  await appendRow('Ventas', row);
+  closeModal();
+  await syncAll();
+  toast('✅ Venta guardada en Google Sheets');
+}
+
+// ─── Compras ──────────────────────────────────────────────────────────────────
+function renderCompras() {
+  if(state.loading) return loadingHTML();
+  const { compras } = state;
+  return `
+    <div class="page-header">
+      <h1 class="page-title">Compras</h1>
+      <button class="btn btn-primary" onclick="openCompraModal()">
+        ${svgIcon('M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',16)} Nueva Compra
+      </button>
+    </div>
+    ${compras.length===0
+      ? `<div class="empty"><p>Sin compras registradas</p></div>`
+      : [...compras].reverse().map(c=>`
+        <div class="item-row">
+          <div class="item-row-body">
+            <div class="item-name">
+              ${c['Proveedor']||''}
+              <span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:8px">${formatDate(c['Fecha Documento'])}</span>
+              ${badge(c['Estado Pago']||'', statusColor[c['Estado Pago']]||'#999')}
+            </div>
+            <div class="rut-label">RUT: ${c['RUT Proveedor']||'—'} · Folio: ${c['Folio']||'—'} · ${c['Tipo Documento']||''}</div>
+            <div class="item-meta" style="margin-top:4px">
+              ${c['Detalle']?'📦 '+c['Detalle']:''}
+              ${c['Categoría']?' · '+c['Categoría']:''}
+              ${c['Medio Pago']?' · '+c['Medio Pago']:''}
+            </div>
+            <div style="margin-top:6px;display:flex;gap:12px;flex-wrap:wrap">
+              <span style="font-size:13px;color:#555">Neto: <b>${clp(c['Neto'])}</b></span>
+              <span class="tag-iva">IVA: ${clp(c['IVA'])}</span>
+              <span style="font-size:15px;font-weight:800;color:#EF4444">Total: ${clp(c['Total'])}</span>
+            </div>
+          </div>
+        </div>`).join('')}
+    <div style="margin-top:16px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:13px;color:#666">
+      💡 Para registrar compras con folio y proveedor, usa directamente tu <b>Google Sheets → pestaña Compras</b>.
+    </div>`;
+}
+
+function openCompraModal() {
+  const provOpts = [{v:'',l:'— Selecciona proveedor —'}, ...state.proveedores.map(p=>({v:p['Proveedor / Razón Social'],l:p['Proveedor / Razón Social']}))];
+  const html = `
+    ${fg('Proveedor *', sel('prv',provOpts,''))}
+    ${fg('Detalle *', inp('pdet','text','','Ej: Fotocopia Carta 10 resmas'))}
+    <div class="form-row">
+      ${fg('Monto Neto (CLP) *', inp('pnet','number','0'))}
+      ${fg('Fecha', inp('pf','date',today()))}
+    </div>
+    ${fg('Tipo Documento', sel('ptd',[{v:'Factura Electrónica',l:'Factura Electrónica'},{v:'Boleta',l:'Boleta'},{v:'Guía de Despacho',l:'Guía de Despacho'}],'Factura Electrónica'))}
+    ${fg('Categoría', sel('pcat',[{v:'Insumos',l:'Insumos'},{v:'Servicios',l:'Servicios'},{v:'Gastos Generales',l:'Gastos Generales'},{v:'Transporte/Envíos',l:'Transporte'}],'Insumos'))}
+    <div class="modal-footer">
+      <button class="btn" style="background:#f5f5f5;border-color:#f5f5f5;color:#666" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCompra()">Guardar en Sheets</button>
+    </div>`;
+  modal('Nueva Compra', html);
+}
+
+async function saveCompra() {
+  const prov=gv('prv'); const det=gv('pdet'); const neto=parseFloat(gv('pnet'));
+  if(!prov||!det||!neto) return alert('Completa todos los campos obligatorios');
+  const iva=Math.round(neto*0.19); const total=neto+iva;
+  const provData = state.proveedores.find(p=>p['Proveedor / Razón Social']===prov);
+  const nextId = state.compras.length + 1;
+  const row = [nextId, gv('pf'), gv('pf'), prov, provData?.['RUT']||'', gv('ptd'), '', det, gv('pcat'), '', 'CLP', neto, '', 'S', iva, total, '', 'Pendiente', '', '', '', '', '', ''];
+  toast('💾 Guardando en Google Sheets...');
+  await appendRow('Compras', row);
+  closeModal();
+  await syncAll();
+  toast('✅ Compra guardada en Google Sheets');
+}
+
+// ─── Resumen Mensual ──────────────────────────────────────────────────────────
+function renderResumen() {
+  if(state.loading) return loadingHTML();
+  const meses = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const data = state.resumen.filter(r=>parseFloat(r['Ventas Neto'])>0||parseFloat(r['Compras Neto'])>0);
+  return `
+    <div class="page-header"><h1 class="page-title">Resumen Mensual</h1></div>
+    <div class="grid-3" style="margin-bottom:24px">
+      ${statCard('Total Ventas Neto', clp(state.ventas.reduce((s,v)=>s+(parseFloat(v['Neto'])||0),0)), 'Acumulado anual', '#10B981')}
+      ${statCard('Total Compras Neto', clp(state.compras.reduce((s,c)=>s+(parseFloat(c['Neto'])||0),0)), 'Acumulado anual', '#EF4444')}
+      ${statCard('Utilidad Acumulada', clp(state.ventas.reduce((s,v)=>s+(parseFloat(v['Neto'])||0),0)-state.compras.reduce((s,c)=>s+(parseFloat(c['Neto'])||0),0)), 'Ventas − Compras neto', '#8B5CF6')}
+    </div>
+    <div class="card">
+      <div class="section-title">Detalle por Mes — 2026</div>
+      ${data.length===0
+        ? '<p style="color:var(--muted)">Sin movimientos registrados aún</p>'
+        : `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:#f9f9f9">
+            <th style="padding:10px;text-align:left;font-weight:700">Mes</th>
+            <th style="padding:10px;text-align:right">Ventas Neto</th>
+            <th style="padding:10px;text-align:right">IVA Ventas</th>
+            <th style="padding:10px;text-align:right">Compras Neto</th>
+            <th style="padding:10px;text-align:right">IVA Compras</th>
+            <th style="padding:10px;text-align:right;font-weight:700">Resultado</th>
+          </tr></thead>
+          <tbody>
+            ${data.map(r=>{
+              const res=parseFloat(r['Resultado (Ventas Neto - Compras Neto)'])||0;
+              return `<tr style="border-bottom:1px solid #f0f0f0">
+                <td style="padding:10px;font-weight:600">${meses[parseInt(r['Mes'])]||'Mes '+r['Mes']}</td>
+                <td style="padding:10px;text-align:right;color:#10B981">${clp(r['Ventas Neto'])}</td>
+                <td style="padding:10px;text-align:right;color:#3B82F6">${clp(r['Ventas IVA'])}</td>
+                <td style="padding:10px;text-align:right;color:#EF4444">${clp(r['Compras Neto'])}</td>
+                <td style="padding:10px;text-align:right;color:#F59E0B">${clp(r['Compras IVA'])}</td>
+                <td style="padding:10px;text-align:right;font-weight:800;color:${res>=0?'#10B981':'#EF4444'}">${clp(res)}</td>
+              </tr>`;}).join('')}
+          </tbody>
+        </table></div>`}
+      <div style="margin-top:12px;font-size:11px;color:#999">Datos calculados automáticamente por tu Google Sheets ✅</div>
+    </div>`;
+}
+
+// ─── Catálogo ─────────────────────────────────────────────────────────────────
+function renderCatalogo() {
+  if(state.loading) return loadingHTML();
+  const { productos } = state;
+
+  const categorias = ['Todos', ...new Set(productos.map(p => p['Categoría']).filter(Boolean))];
+  const filtered = productos.filter(p => {
+    const matchCat = state.catalogFilter === 'Todos' || p['Categoría'] === state.catalogFilter;
+    const q = state.catalogSearch.toLowerCase();
+    const matchSearch = !q || (p['Producto/Servicio']||'').toLowerCase().includes(q);
+    return matchCat && matchSearch;
+  });
+
+  return `
+    <div class="page-header">
+      <h1 class="page-title">Catálogo</h1>
+      <button class="btn btn-primary" onclick="syncAll()" style="font-size:13px;padding:8px 14px">🔄 Actualizar</button>
+    </div>
+
+    <!-- Buscador -->
+    <div style="margin-bottom:16px;position:relative">
+      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+      </svg>
+      <input
+        class="form-input"
+        style="padding-left:38px"
+        type="text"
+        placeholder="Buscar producto..."
+        value="${state.catalogSearch}"
+        oninput="state.catalogSearch=this.value;render()"
+      />
+    </div>
+
+    <!-- Filtros por categoría -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+      ${categorias.map(cat => `
+        <button onclick="setCatalogFilter('${cat}')"
+          style="padding:6px 16px;border-radius:20px;
+                 border:2px solid ${state.catalogFilter===cat?'var(--accent)':'var(--border)'};
+                 background:${state.catalogFilter===cat?'var(--accent)':'transparent'};
+                 color:${state.catalogFilter===cat?'#fff':'var(--muted)'};
+                 font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+                 transition:all 0.15s;white-space:nowrap">
+          ${cat}
+        </button>`).join('')}
+    </div>
+
+    <!-- Contador -->
+    <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">
+      Mostrando <b style="color:var(--text)">${filtered.length}</b> de <b style="color:var(--text)">${productos.length}</b> productos
+    </div>
+
+    <!-- Grid de productos -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+      ${filtered.length === 0
+        ? `<div class="empty" style="grid-column:1/-1"><p>Sin productos para esta búsqueda</p></div>`
+        : filtered.map(p => {
+            const costo  = parseCLP(p[' Costo Unitario '] || p['Costo Unitario']);
+            const pventa = parseCLP(p[' Precio Venta Unitario '] || p['Precio Venta Unitario']);
+            const margen = costo > 0 ? Math.round(((pventa - costo) / costo) * 100) : 0;
+            const mColor = margen >= 30 ? '#10B981' : margen >= 15 ? '#F59E0B' : '#EF4444';
+            const catColor = {'Papel':'#3B82F6','Embalaje':'#8B5CF6','Oficina':'#10B981','Higiene':'#EC4899','Etiquetas':'#F59E0B'}[p['Categoría']] || '#6B7280';
+            return `
+              <div class="card" style="border-top:3px solid ${catColor};display:flex;flex-direction:column;gap:0">
+                <!-- Header tarjeta -->
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px">
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:700;font-size:14px;color:var(--text);line-height:1.35;margin-bottom:6px">${p['Producto/Servicio']||'—'}</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                      ${p['Categoría'] ? `<span class="badge" style="background:${catColor}18;color:${catColor}">${p['Categoría']}</span>` : ''}
+                      ${p['Unidad'] ? `<span style="font-size:11px;color:var(--muted);font-weight:600;background:#f3f4f6;padding:2px 7px;border-radius:4px">${p['Unidad']}</span>` : ''}
+                    </div>
+                  </div>
+                  <div style="background:${mColor}15;color:${mColor};font-size:11px;font-weight:800;padding:4px 9px;border-radius:12px;flex-shrink:0;text-align:center;white-space:nowrap">
+                    +${margen}%
+                    <div style="font-size:9px;font-weight:600;opacity:0.8">MARGEN</div>
+                  </div>
+                </div>
+                <!-- Precios -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+                  <div style="background:#f9fafb;border:1.5px solid var(--border);border-radius:8px;padding:10px;text-align:center">
+                    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Costo</div>
+                    <div style="font-size:16px;font-weight:800;color:var(--text)">${clp(costo)}</div>
+                  </div>
+                  <div style="background:#FFF8F0;border:1.5px solid var(--accent);border-radius:8px;padding:10px;text-align:center">
+                    <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px">Precio Venta</div>
+                    <div style="font-size:16px;font-weight:800;color:var(--accent)">${clp(pventa)}</div>
+                  </div>
+                </div>
+                ${(p['SKU/ID']||p['SKU']) ? `<div style="margin-top:8px;font-size:10px;color:#bbb;text-align:right">SKU: ${p['SKU/ID']||p['SKU']}</div>` : ''}
+              </div>`;
+          }).join('')}
+    </div>
+
+    <div style="margin-top:20px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:13px;color:#666">
+      💡 Para agregar o editar productos, usa directamente tu <b>Google Sheets → pestaña Productos</b>. Los cambios aparecen aquí al presionar Actualizar.
+    </div>`;
+}
+
+function setCatalogFilter(cat) {
+  state.catalogFilter = cat;
+  render();
+}
+
+// ─── Cotizaciones ─────────────────────────────────────────────────────────────
+const COT_ESTADO = {
+  'Borrador':  { color: '#6B7280', bg: '#F3F4F6' },
+  'Enviada':   { color: '#3B82F6', bg: '#EFF6FF' },
+  'Aprobada':  { color: '#10B981', bg: '#D1FAE5' },
+  'Rechazada': { color: '#EF4444', bg: '#FEE2E2' },
+};
+
+function renderCotizacion() {
+  if(state.loading) return loadingHTML();
+
+  const tabBtn = (id, label, icon) => {
+    const count = id==='historial' && state.cotHistorial.length > 0
+      ? `<span style="background:${state.cotTab===id?'rgba(255,255,255,0.3)':'var(--accent)'};color:#fff;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:4px">${state.cotHistorial.length}</span>` : '';
+    return `<button onclick="state.cotTab='${id}';render()"
+      style="display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;
+             font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;
+             border:2px solid ${state.cotTab===id?'var(--accent)':'var(--border)'};
+             background:${state.cotTab===id?'var(--accent)':'transparent'};
+             color:${state.cotTab===id?'#fff':'var(--muted)'}">
+      ${icon} ${label}${count}
+    </button>`;
+  };
+
+  const tabs = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px">
+      ${tabBtn('nueva','Nueva Cotización','📋')}
+      ${tabBtn('historial','Historial','🗂️')}
+    </div>`;
+
+  if (state.cotTab === 'historial') return renderHistorialCotizaciones(tabs);
+
+  const c = state.cotizacion;
+  const items = c.items || [];
+  const neto = items.reduce((s,i) => s + (i.cantidad * i.precio), 0);
+  const iva = Math.round(neto * 0.19);
+  const total = neto + iva;
+
+  const prodsFiltrados = state.productos.filter(p => {
+    const q = (state.cotBusqueda||'').toLowerCase();
+    return !q || (p['Producto/Servicio']||'').toLowerCase().includes(q);
+  }).slice(0, 30);
+
+  return `
+  <div class="page-header">
+    <h1 class="page-title">Cotizaciones</h1>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="cotLimpiar()" style="font-size:13px;padding:8px 14px">🗑️ Limpiar</button>
+      <button class="btn btn-outline-blue" onclick="cotGuardar()" style="font-size:13px;padding:8px 18px">💾 Guardar</button>
+      <button class="btn btn-primary" onclick="cotGenerarPDF()" style="font-size:13px;padding:8px 18px">⬇️ PDF</button>
+    </div>
+  </div>
+  ${tabs}
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px">
+    <div class="card" style="border-top:3px solid var(--accent)">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--accent);margin-bottom:12px">📋 Datos de la cotización</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">N° Cotización</div>
+          <input class="form-input" style="font-size:13px" placeholder="Ej: 2025-003" value="${c.numero||''}" oninput="state.cotizacion.numero=this.value"/>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">Fecha</div>
+          <input class="form-input" style="font-size:13px" type="date" value="${c.fecha||new Date().toISOString().split('T')[0]}" oninput="state.cotizacion.fecha=this.value"/>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600">Validez (días)</div>
+          <input class="form-input" style="font-size:13px" type="number" value="${c.validez||30}" oninput="state.cotizacion.validez=this.value"/>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="border-top:3px solid #3B82F6">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:#3B82F6;margin-bottom:12px">👤 Datos del cliente</div>
+      <div style="display:grid;gap:8px">
+        <input class="form-input" style="font-size:13px" placeholder="Nombre / Razón social" value="${c.clienteNombre||''}" oninput="state.cotizacion.clienteNombre=this.value"/>
+        <input class="form-input" style="font-size:13px" placeholder="RUT (ej: 76.123.456-7)" value="${c.clienteRUT||''}" oninput="state.cotizacion.clienteRUT=this.value"/>
+        <input class="form-input" style="font-size:13px" placeholder="Dirección" value="${c.clienteDireccion||''}" oninput="state.cotizacion.clienteDireccion=this.value"/>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px">
+          <input class="form-input" style="font-size:13px" placeholder="Teléfono" value="${c.clienteTel||''}" oninput="state.cotizacion.clienteTel=this.value"/>
+          <input class="form-input" style="font-size:13px" placeholder="Email" value="${c.clienteEmail||''}" oninput="state.cotizacion.clienteEmail=this.value"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:12px">➕ Agregar productos al detalle</div>
+    <div style="position:relative;margin-bottom:10px">
+      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input class="form-input" style="padding-left:36px;font-size:13px" placeholder="Buscar producto del catálogo..." value="${state.cotBusqueda||''}" oninput="state.cotBusqueda=this.value;render()"/>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;max-height:220px;overflow-y:auto">
+      ${prodsFiltrados.length === 0
+        ? `<div style="color:var(--muted);font-size:13px;padding:8px">Sin resultados</div>`
+        : prodsFiltrados.map(p => {
+            const precio = parseCLP(p[' Precio Venta Unitario '] || p['Precio Venta Unitario']);
+            return `<div onclick="cotAgregar('${(p['Producto/Servicio']||'').replace(/'/g,"\\'")}',${precio},'${p['Unidad']||'unidad'}')"
+              style="padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;background:var(--surface)"
+              onmouseover="this.style.borderColor='var(--accent)';this.style.background='#FFF8F0'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface)'">
+              <div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px">${p['Producto/Servicio']||'—'}</div>
+              <div style="font-size:11px;color:var(--accent);font-weight:800">${clp(precio)} / ${p['Unidad']||'unidad'}</div>
+            </div>`;
+          }).join('')}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:14px">📦 Detalle de cotización</div>
+    ${items.length === 0
+      ? `<div class="empty" style="padding:24px"><p>Selecciona productos del buscador de arriba</p></div>`
+      : `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <table style="width:100%;min-width:360px;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:8px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase">Producto</th>
+                <th style="text-align:center;padding:8px 4px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;width:64px">Cant.</th>
+                <th style="text-align:right;padding:8px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;width:100px">Subtotal</th>
+                <th style="width:28px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map((it,idx) => `
+                <tr style="border-bottom:1px solid var(--border)">
+                  <td style="padding:8px;font-weight:600;color:var(--text);font-size:12px;line-height:1.3">
+                    <div>${it.nombre}</div>
+                    <div style="font-size:11px;color:var(--muted);font-weight:400;margin-top:2px">${clp(it.precio)} / ${it.unidad||'unidad'}</div>
+                  </td>
+                  <td style="padding:4px;text-align:center">
+                    <input type="number" min="1" value="${it.cantidad}"
+                      style="width:52px;text-align:center;padding:4px;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;font-weight:700;color:var(--text);background:var(--surface)"
+                      oninput="cotCantidad(${idx},this.value)"/>
+                  </td>
+                  <td style="padding:8px;text-align:right;font-weight:800;color:var(--accent);font-size:13px">${clp(it.cantidad * it.precio)}</td>
+                  <td style="padding:4px;text-align:center">
+                    <button onclick="cotEliminar(${idx})" style="background:none;border:none;cursor:pointer;color:#f87171;padding:4px;border-radius:4px" title="Eliminar">✕</button>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`}
+    ${items.length > 0 ? `
+    <div style="margin-top:16px;border-top:2px solid var(--border);padding-top:14px">
+      <div style="max-width:280px;margin-left:auto">
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px">
+          <span style="color:var(--muted)">Neto</span><span style="font-weight:700">${clp(neto)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px">
+          <span style="color:var(--muted)">IVA 19%</span><span style="font-weight:700">${clp(iva)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--accent);border-radius:8px;margin-top:6px">
+          <span style="color:#fff;font-weight:800;font-size:14px">TOTAL</span>
+          <span style="color:#fff;font-weight:900;font-size:16px">${clp(total)}</span>
+        </div>
+      </div>
+    </div>` : ''}
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:8px">📝 Notas / condiciones</div>
+    <textarea class="form-input" style="min-height:70px;resize:vertical;font-size:13px" placeholder="Ej: Despacho incluido. Tiempo de entrega 2-3 días hábiles. Pago transferencia bancaria..." oninput="state.cotizacion.notas=this.value">${c.notas||''}</textarea>
+  </div>
+
+  ${items.length > 0 ? `
+  <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap">
+    <button class="btn" onclick="cotLimpiar()" style="font-size:13px;padding:10px 20px">🗑️ Limpiar todo</button>
+    <button class="btn btn-outline-blue" onclick="cotGuardar()" style="font-size:14px;padding:11px 24px;font-weight:800">💾 Guardar en historial</button>
+    <button class="btn btn-primary" onclick="cotGenerarPDF()" style="font-size:14px;padding:11px 24px;font-weight:800">⬇️ Descargar PDF</button>
+  </div>` : ''}`;
+}
+
+function renderHistorialCotizaciones(tabs) {
+  const hist = state.cotHistorial;
+  const estados = Object.keys(COT_ESTADO);
+
+  const resumen = estados.map(e => {
+    const n = hist.filter(c => c.estado === e).length;
+    const st = COT_ESTADO[e];
+    return `<div class="card stat-card" style="border-left-color:${st.color}">
+      <div class="stat-label">${e}</div>
+      <div class="stat-value" style="color:${st.color}">${n}</div>
+      <div class="stat-sub">${n === 1 ? 'cotización' : 'cotizaciones'}</div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="page-header">
+    <h1 class="page-title">Cotizaciones</h1>
+    <button class="btn btn-primary" onclick="state.cotTab='nueva';cotLimpiar()" style="font-size:13px;padding:8px 18px">
+      + Nueva Cotización
+    </button>
+  </div>
+  ${tabs}
+
+  <div class="grid-4" style="margin-bottom:20px">${resumen}</div>
+
+  ${hist.length === 0
+    ? `<div class="empty card"><p>Sin cotizaciones guardadas aún.<br>Crea una nueva cotización y presiona <b>💾 Guardar</b>.</p></div>`
+    : hist.map(c => {
+        const st = COT_ESTADO[c.estado] || COT_ESTADO['Borrador'];
+        const estadoOpts = estados.map(e =>
+          `<option value="${e}" ${c.estado===e?'selected':''}>${e}</option>`
+        ).join('');
+        return `
+        <div class="item-row" style="flex-direction:column;gap:10px;border-left:4px solid ${st.color}">
+          <div style="display:flex;gap:12px;align-items:flex-start;width:100%;flex-wrap:wrap">
+            <div class="item-row-body">
+              <div class="item-name" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                N° ${c.numero}
+                <span class="badge" style="background:${st.bg};color:${st.color}">${c.estado}</span>
+              </div>
+              <div class="rut-label" style="margin-top:3px">
+                ${c.clienteNombre||'Sin cliente'} ${c.clienteRUT?'· RUT: '+c.clienteRUT:''}
+              </div>
+              <div class="item-meta" style="margin-top:5px;display:flex;gap:12px;flex-wrap:wrap">
+                <span>📅 ${c.fecha}</span>
+                <span>⏱ Válida ${c.validez} días</span>
+                <span>📦 ${c.items.length} producto(s)</span>
+                <span style="font-size:12px;color:var(--muted)">Creada: ${c.creadoEn}</span>
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Total</div>
+              <div style="font-size:20px;font-weight:900;color:var(--accent)">${clp(c.total)}</div>
+              <div style="font-size:11px;color:var(--muted)">Neto: ${clp(c.neto)}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--border)">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1;min-width:160px">
+              Estado:
+              <select class="form-select" style="font-size:12px;padding:4px 8px;height:auto"
+                onchange="cotCambiarEstado(${c.id},this.value)">
+                ${estadoOpts}
+              </select>
+            </div>
+            <div class="item-row-actions">
+              <button class="btn btn-outline-blue btn-sm" onclick="cotDescargarHistorial(${c.id})">⬇️ PDF</button>
+              <button class="btn btn-outline-green btn-sm" onclick="cotRecargar(${c.id})">✏️ Editar</button>
+              <button class="btn btn-outline-red btn-sm" onclick="cotEliminarHistorial(${c.id})">🗑️</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}`;
+}
+
+function cotAgregar(nombre, precio, unidad) {
+  const idx = state.cotizacion.items.findIndex(i => i.nombre === nombre);
+  if(idx >= 0) { state.cotizacion.items[idx].cantidad++; }
+  else { state.cotizacion.items.push({ nombre, precio, unidad, cantidad: 1 }); }
+  render();
+}
+
+function cotCantidad(idx, val) {
+  const n = parseInt(val)||1;
+  state.cotizacion.items[idx].cantidad = n < 1 ? 1 : n;
+}
+
+function cotEliminar(idx) {
+  state.cotizacion.items.splice(idx, 1);
+  render();
+}
+
+function cotLimpiar() {
+  state.cotizacion = { numero:'', fecha:'', validez:'30', clienteNombre:'', clienteRUT:'', clienteEmail:'', clienteTel:'', clienteDireccion:'', notas:'', items:[] };
+  state.cotBusqueda = '';
+  render();
+}
+
+function cotGenerarPDF() {
+  const c = state.cotizacion;
+  if(c.items.length === 0) { toast('Agrega al menos un producto'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+
+  const W = 210, M = 18;
+  const accent = [230, 126, 34];
+  const dark = [13, 17, 23];
+  const gray = [107, 114, 128];
+  const light = [244, 245, 247];
+
+  // ─── Header ───────────────────────────────────────────────────────────────
+  doc.setFillColor(...accent);
+  doc.rect(0, 0, W, 32, 'F');
+
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(22);
+  doc.text('FOTO FAST SpA', M, 14);
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.text('Insumos de Oficina · Papelería · Embalaje', M, 21);
+  doc.text('contacto@fotofast.cl  |  fotofastSPA.vercel.app', M, 27);
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(16);
+  doc.setTextColor(255,255,255);
+  doc.text('COTIZACIÓN', W - M, 14, { align:'right' });
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  const numCot = c.numero || 'S/N';
+  const fechaCot = c.fecha ? new Date(c.fecha + 'T12:00:00').toLocaleDateString('es-CL') : new Date().toLocaleDateString('es-CL');
+  const validezDate = (() => {
+    const d = c.fecha ? new Date(c.fecha + 'T12:00:00') : new Date();
+    d.setDate(d.getDate() + parseInt(c.validez||30));
+    return d.toLocaleDateString('es-CL');
+  })();
+  doc.text(`N°: ${numCot}`, W - M, 21, { align:'right' });
+  doc.text(`Fecha: ${fechaCot}`, W - M, 27, { align:'right' });
+
+  // ─── Datos cliente ────────────────────────────────────────────────────────
+  let y = 44;
+  doc.setFillColor(...light);
+  doc.roundedRect(M, y, W - M*2, 36, 3, 3, 'F');
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...accent);
+  doc.text('DATOS DEL CLIENTE', M + 5, y + 7);
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...dark);
+  doc.text(c.clienteNombre || 'Sin especificar', M + 5, y + 15);
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...gray);
+  const linea1 = [c.clienteRUT ? `RUT: ${c.clienteRUT}` : '', c.clienteDireccion || ''].filter(Boolean).join('   ·   ');
+  const linea2 = [c.clienteTel ? `Tel: ${c.clienteTel}` : '', c.clienteEmail || ''].filter(Boolean).join('   ·   ');
+  if(linea1) doc.text(linea1, M + 5, y + 22);
+  if(linea2) doc.text(linea2, M + 5, y + 29);
+
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...gray);
+  doc.text(`Válida hasta: ${validezDate}`, W - M - 5, y + 15, { align:'right' });
+
+  // ─── Tabla de productos ───────────────────────────────────────────────────
+  y += 44;
+  const colX = [M, M+80, M+120, M+152, M+172];
+  const colW = [78, 38, 30, 18, 20];
+
+  doc.setFillColor(...accent);
+  doc.rect(M, y, W - M*2, 8, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(255,255,255);
+  ['PRODUCTO / DESCRIPCIÓN','PRECIO UNIT.','CANTIDAD','IVA','SUBTOTAL'].forEach((h,i) => {
+    const align = i === 0 ? 'left' : 'right';
+    const xPos = i === 0 ? colX[i]+2 : colX[i]+colW[i]-1;
+    doc.text(h, xPos, y+5.5, { align });
+  });
+
+  y += 8;
+  const neto = c.items.reduce((s,it) => s + it.cantidad*it.precio, 0);
+
+  c.items.forEach((it, idx) => {
+    const rowH = 8;
+    if(idx % 2 === 0) { doc.setFillColor(250,250,252); doc.rect(M, y, W-M*2, rowH, 'F'); }
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...dark);
+    const nombre = it.nombre.length > 52 ? it.nombre.substring(0,49)+'...' : it.nombre;
+    doc.text(nombre, colX[0]+2, y+5.5);
+    doc.text(clp(it.precio), colX[1]+colW[1]-1, y+5.5, { align:'right' });
+    doc.text(String(it.cantidad), colX[2]+colW[2]-1, y+5.5, { align:'right' });
+    doc.text('19%', colX[3]+colW[3]-1, y+5.5, { align:'right' });
+    doc.setFont('helvetica','bold');
+    doc.text(clp(it.cantidad*it.precio), colX[4]+colW[4]-1, y+5.5, { align:'right' });
+    y += rowH;
+  });
+
+  // ─── Totales ──────────────────────────────────────────────────────────────
+  const iva = Math.round(neto * 0.19);
+  const total = neto + iva;
+  y += 4;
+  doc.setDrawColor(200,200,200);
+  doc.line(M, y, W-M, y);
+  y += 6;
+
+  const totX = W - M - 72;
+  const numX = W - M - 1;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...gray);
+  doc.text('Neto:', totX, y); doc.text(clp(neto), numX, y, {align:'right'});
+  y += 6;
+  doc.text('IVA 19%:', totX, y); doc.text(clp(iva), numX, y, {align:'right'});
+  y += 4;
+
+  doc.setFillColor(...accent);
+  doc.roundedRect(totX-5, y, 77, 10, 2, 2, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(255,255,255);
+  doc.text('TOTAL:', totX, y+7);
+  doc.text(clp(total), numX, y+7, {align:'right'});
+  y += 18;
+
+  // ─── Notas ────────────────────────────────────────────────────────────────
+  if(c.notas) {
+    doc.setFillColor(...light);
+    const notasLines = doc.splitTextToSize(c.notas, W-M*2-10);
+    const notasH = notasLines.length * 5 + 12;
+    doc.roundedRect(M, y, W-M*2, notasH, 2, 2, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...accent);
+    doc.text('NOTAS Y CONDICIONES', M+5, y+7);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...gray);
+    doc.text(notasLines, M+5, y+13);
+    y += notasH + 6;
+  }
+
+  // ─── Pie de página ────────────────────────────────────────────────────────
+  doc.setFillColor(...dark);
+  doc.rect(0, 282, W, 15, 'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(150,150,160);
+  doc.text('Foto Fast SpA  ·  Insumos de Oficina, Papelería y Embalaje  ·  Esta cotización tiene validez por los días indicados desde su emisión.', W/2, 288, {align:'center'});
+  doc.text('fotofastSPA.vercel.app', W/2, 293, {align:'center'});
+
+  const fileName = `Cotizacion_${numCot}_${(c.clienteNombre||'Cliente').replace(/\s+/g,'_')}.pdf`;
+  doc.save(fileName);
+  toast('✅ PDF descargado correctamente');
+}
+
+
+function loadingHTML() {
+  return '<div class="loading"><div class="spinner"></div> Cargando desde Google Sheets...</div>';
+}
+
+function formatDate(val) {
+  if(!val) return '—';
+  if(typeof val === 'number') {
+    const d = new Date(Math.round((val - 25569)*86400*1000));
+    return d.toLocaleDateString('es-CL');
+  }
+  return String(val).substring(0,10);
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  renderNav();
+  const pages = { dashboard:renderDashboard, catalogo:renderCatalogo, cotizacion:renderCotizacion, clientes:renderClientes, ventas:renderVentas, compras:renderCompras, resumen:renderResumen };
+  document.getElementById('content').innerHTML = (pages[state.tab]||renderDashboard)();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+render();
+syncAll();
+</script>
+</body>
+</html>
