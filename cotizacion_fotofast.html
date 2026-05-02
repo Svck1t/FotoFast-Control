@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotización — Foto Fast SpA</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde:       #1e4d35;
+    --verde-mid:   #2a6347;
+    --verde-light: #e8f2ec;
+    --verde-pale:  #f2f8f4;
+    --ink:         #161a18;
+    --ink-2:       #3d4440;
+    --ink-3:       #6b706d;
+    --ink-4:       #a8aea9;
+    --border:      #d8ddd9;
+    --bg:          #f6f7f5;
+    --white:       #ffffff;
+    --danger:      #c0392b;
+    --radius:      8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  /* ── TOOLBAR (no imprime) ── */
+  .toolbar {
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .toolbar span {
+    font-size: 12px;
+    color: var(--ink-3);
+    flex: 1;
+  }
+  .btn {
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--ink-2);
+    transition: background 0.15s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary {
+    background: var(--verde);
+    color: #fff;
+    border-color: var(--verde);
+  }
+  .btn-primary:hover { background: var(--verde-mid); }
+  .btn-danger { color: var(--danger); border-color: #f0c4c0; }
+  .btn-danger:hover { background: #fdf2f2; }
+
+  /* ── COTIZACIÓN ── */
+  .cot {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.04);
+  }
+
+  /* Header */
+  .cot-header {
+    background: var(--verde);
+    padding: 2.5rem 2.5rem 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: start;
+  }
+  .logo-area h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.5px;
+    margin-bottom: 2px;
+  }
+  .logo-area .tagline {
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .logo-area .empresa-info {
+    margin-top: 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.7;
+  }
+  .logo-area .empresa-info strong { color: rgba(255,255,255,0.95); }
+
+  .doc-info { text-align: right; }
+  .doc-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .doc-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+  .doc-num input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.35);
+    color: #fff;
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    width: 120px;
+    text-align: right;
+    outline: none;
+    padding: 2px 0;
+  }
+  .doc-num input::placeholder { color: rgba(255,255,255,0.35); }
+  .doc-meta {
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    line-height: 2;
+  }
+  .doc-meta input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.9);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    width: 130px;
+    text-align: right;
+    outline: none;
+    padding: 0;
+  }
+  .doc-meta input:focus { border-bottom-color: rgba(255,255,255,0.7); }
+
+  /* Cliente section */
+  .cot-body { padding: 2rem 2.5rem; }
+
+  .section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 600px) { .section-grid { grid-template-columns: 1fr; } }
+
+  .info-block {
+    background: var(--verde-pale);
+    border: 1px solid #d0e4d8;
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+  }
+  .info-block-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--verde-mid);
+    margin-bottom: 10px;
+  }
+  .field-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .field-row label {
+    font-size: 12px;
+    color: var(--ink-3);
+    min-width: 80px;
+    white-space: nowrap;
+  }
+  .field-row input, .field-row select {
+    flex: 1;
+    border: none;
+    border-bottom: 1px dashed var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    padding: 3px 0;
+    transition: border-color 0.15s;
+  }
+  .field-row input:focus, .field-row select:focus {
+    border-bottom-color: var(--verde-mid);
+  }
+  .field-row input::placeholder { color: var(--ink-4); }
+
+  /* Conditions strip */
+  .conditions-strip {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .cond-item {
+    flex: 1;
+    min-width: 140px;
+    background: var(--verde-pale);
+    border: 1px solid #d0e4d8;
+    border-radius: var(--radius);
+    padding: 10px 14px;
+  }
+  .cond-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--verde-mid); margin-bottom: 4px; }
+  .cond-item input, .cond-item select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    outline: none;
+  }
+
+  /* Table */
+  .sec-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 13px;
+  }
+  .items-table thead tr {
+    background: var(--verde);
+    color: #fff;
+  }
+  .items-table thead th {
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .items-table thead th:last-child,
+  .items-table thead th:nth-child(3),
+  .items-table thead th:nth-child(4) { text-align: right; }
+
+  .items-table tbody tr { border-bottom: 1px solid var(--border); }
+  .items-table tbody tr:hover { background: var(--verde-pale); }
+  .items-table tbody tr:last-child { border-bottom: none; }
+
+  .items-table td { padding: 10px 12px; vertical-align: middle; }
+  .items-table td input, .items-table td select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    padding: 2px 0;
+  }
+  .items-table td input[type=number] {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+  }
+  .items-table td:nth-child(3),
+  .items-table td:nth-child(4),
+  .items-table td:last-child { text-align: right; }
+  .td-total {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .td-del {
+    width: 32px;
+    text-align: center;
+  }
+  .del-btn {
+    background: none;
+    border: none;
+    color: var(--ink-4);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .del-btn:hover { color: var(--danger); background: #fdf2f2; }
+
+  .add-row-wrap { margin-bottom: 1.5rem; }
+  .btn-add-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    border: 1px dashed var(--verde-mid);
+    background: transparent;
+    color: var(--verde-mid);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-add-row:hover { background: var(--verde-pale); }
+
+  /* Totals */
+  .totals-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2rem;
+  }
+  .totals-box {
+    background: var(--verde-pale);
+    border: 1px solid #d0e4d8;
+    border-radius: var(--radius);
+    padding: 1.1rem 1.5rem;
+    min-width: 260px;
+  }
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #d0e4d8;
+  }
+  .total-row:last-child { border-bottom: none; }
+  .total-row .tl { color: var(--ink-3); }
+  .total-row .tv {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .total-row.grand {
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 2px solid var(--verde);
+  }
+  .total-row.grand .tl { font-size: 14px; font-weight: 600; color: var(--verde); }
+  .total-row.grand .tv { font-size: 18px; font-weight: 600; color: var(--verde); }
+
+  /* Notes & conditions */
+  .notes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 600px) { .notes-grid { grid-template-columns: 1fr; } }
+
+  .notes-block label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .notes-block textarea {
+    width: 100%;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    background: var(--verde-pale);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink);
+    padding: 10px 12px;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  .notes-block textarea:focus { border-color: var(--verde-mid); }
+
+  /* Footer */
+  .cot-footer {
+    background: var(--verde);
+    padding: 1.25rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .footer-text { font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.7; }
+  .footer-text strong { color: rgba(255,255,255,0.9); }
+  .validity-badge {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: var(--radius);
+    padding: 8px 16px;
+    text-align: center;
+  }
+  .validity-badge div:first-child { font-size: 10px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.08em; }
+  .validity-badge div:last-child { font-size: 14px; font-weight: 600; color: #fff; margin-top: 2px; }
+  .validity-badge input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    width: 120px;
+    text-align: center;
+    outline: none;
+  }
+  .validity-badge input::placeholder { color: rgba(255,255,255,0.35); }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .toolbar, .btn, .del-btn, .btn-add-row, .add-row-wrap { display: none !important; }
+    .cot { box-shadow: none; border-radius: 0; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cot-header, .cot-footer { -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <span>Completa los campos editables · Haz clic en cualquier texto para editarlo</span>
+  <button class="btn" onclick="clearAll()">Limpiar todo</button>
+  <button class="btn btn-primary" onclick="window.print()">Imprimir / Guardar PDF</button>
+</div>
+
+<!-- Cotización -->
+<div class="cot">
+
+  <!-- Header -->
+  <div class="cot-header">
+    <div class="logo-area">
+      <h1>Foto Fast SpA</h1>
+      <div class="tagline">Insumos de Oficina · Papelería · Embalaje</div>
+      <div class="empresa-info">
+        <strong>RUT:</strong> <span id="rut-empresa" contenteditable="true" style="outline:none;border-bottom:1px dashed rgba(255,255,255,0.3);padding:0 4px;">76.XXX.XXX-X</span><br>
+        <strong>Dirección:</strong> Santiago, Región Metropolitana<br>
+        <strong>Contacto:</strong> contacto@fotofast.cl &nbsp;|&nbsp; WhatsApp disponible<br>
+        <strong>Giro:</strong> Venta al por mayor de insumos de oficina
+      </div>
+    </div>
+    <div class="doc-info">
+      <div class="doc-badge">Cotización</div>
+      <div class="doc-num">N° <input type="text" id="num-cot" placeholder="0001" value="0001"></div>
+      <div class="doc-meta">
+        Fecha: <input type="date" id="fecha-cot"><br>
+        Válida hasta: <input type="date" id="fecha-val"><br>
+        Vendedor: <input type="text" placeholder="Tu nombre" style="width:110px;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="cot-body">
+
+    <!-- Cliente + Entrega -->
+    <div class="section-grid">
+      <div class="info-block">
+        <div class="info-block-label">Datos del cliente</div>
+        <div class="field-row"><label>Empresa / Razón:</label><input type="text" id="cli-nombre" placeholder="Ej: Colegio San Martín"></div>
+        <div class="field-row"><label>RUT:</label><input type="text" id="cli-rut" placeholder="12.345.678-9"></div>
+        <div class="field-row"><label>Giro:</label><input type="text" id="cli-giro" placeholder="Ej: Establec. Educacional"></div>
+        <div class="field-row"><label>Contacto:</label><input type="text" id="cli-contacto" placeholder="Nombre del contacto"></div>
+        <div class="field-row"><label>Teléfono:</label><input type="text" id="cli-tel" placeholder="+56 9 XXXX XXXX"></div>
+        <div class="field-row"><label>Email:</label><input type="email" id="cli-email" placeholder="contacto@colegio.cl"></div>
+      </div>
+      <div class="info-block">
+        <div class="info-block-label">Entrega y pago</div>
+        <div class="field-row"><label>Dirección:</label><input type="text" placeholder="Calle, número, comuna"></div>
+        <div class="field-row"><label>Comuna:</label><input type="text" placeholder="Ej: Santiago Centro"></div>
+        <div class="field-row"><label>Fecha entrega:</label><input type="text" placeholder="Ej: A coordinar"></div>
+        <div class="field-row"><label>Despacho:</label>
+          <select>
+            <option>A coordinar</option>
+            <option>Retiro en punto acordado</option>
+            <option>Despacho incluido</option>
+            <option>Despacho con costo adicional</option>
+          </select>
+        </div>
+        <div class="field-row"><label>Pago:</label>
+          <select>
+            <option>Transferencia bancaria</option>
+            <option>Cheque al día</option>
+            <option>Crédito 30 días</option>
+            <option>Crédito 60 días</option>
+            <option>Contado</option>
+          </select>
+        </div>
+        <div class="field-row"><label>Moneda:</label>
+          <select><option>CLP</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Productos -->
+    <div class="sec-label">Detalle de productos</div>
+    <table class="items-table" id="items-table">
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th>Descripción del producto</th>
+          <th style="width:80px;">Cantidad</th>
+          <th style="width:110px;">Precio unit. neto</th>
+          <th style="width:120px;">Total neto</th>
+          <th style="width:32px;"></th>
+        </tr>
+      </thead>
+      <tbody id="items-body"></tbody>
+    </table>
+
+    <div class="add-row-wrap">
+      <button class="btn-add-row" onclick="addRow()">+ Agregar producto</button>
+    </div>
+
+    <!-- Totals -->
+    <div class="totals-wrap">
+      <div class="totals-box">
+        <div class="total-row">
+          <span class="tl">Subtotal neto</span>
+          <span class="tv" id="t-neto">$0</span>
+        </div>
+        <div class="total-row">
+          <span class="tl">IVA (19%)</span>
+          <span class="tv" id="t-iva">$0</span>
+        </div>
+        <div class="total-row grand">
+          <span class="tl">Total a pagar</span>
+          <span class="tv" id="t-total">$0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="notes-grid">
+      <div class="notes-block">
+        <label>Observaciones / condiciones especiales</label>
+        <textarea rows="4" placeholder="Ej: Precio válido sujeto a disponibilidad de stock. Despacho a coordinar según volumen del pedido."></textarea>
+      </div>
+      <div class="notes-block">
+        <label>Datos bancarios para transferencia</label>
+        <textarea rows="4" placeholder="Banco: &#10;Cuenta corriente N°: &#10;RUT: &#10;Email para confirmación:">Banco: Falabella
+Cuenta corriente N°: 
+RUT: 
+Email: </textarea>
+      </div>
+    </div>
+
+  </div><!-- /cot-body -->
+
+  <!-- Footer -->
+  <div class="cot-footer">
+    <div class="footer-text">
+      <strong>Foto Fast SpA</strong> · Venta por pedido, sin stock mínimo<br>
+      Emitimos factura electrónica · Proveedor: Distribuidora Walter Lund Spa
+    </div>
+    <div class="validity-badge">
+      <div>Vigencia de oferta</div>
+      <div><input type="text" id="vigencia" placeholder="Ej: 7 días hábiles" value="7 días hábiles"></div>
+    </div>
+  </div>
+
+</div><!-- /cot -->
+
+<script>
+const CATALOG = [
+  { desc: 'Papel Fotocopia Carta Excellent Copy 75 grs (500 hjs/resma)', unit: 3193 },
+  { desc: 'Papel Fotocopia Carta — caja 10 resmas', unit: 29412 },
+  { desc: 'Papel Fotocopia Oficio Excellent Copy 75 grs (500 hjs/resma)', unit: 3782 },
+  { desc: 'Papel Fotocopia Oficio — caja 5 resmas', unit: 18487 },
+  { desc: 'Papel Fotocopia Oficio — caja 10 resmas', unit: 35294 },
+  { desc: 'Bond Color Carta 75 grs 500 hjs (indicar color)', unit: 13125 },
+  { desc: 'Bond Color Oficio 75 grs 500 hjs (indicar color)', unit: 15000 },
+  { desc: 'Cinta Masking WL 18 mm x 40 Mts', unit: 788 },
+  { desc: 'Cinta Embalaje WL Transparente 48 mm x 100 Mts (45 micras)', unit: 643 },
+  { desc: 'Cinta Mágica Invisible 3M 18 mm x 10 Mts', unit: 2400 },
+  { desc: 'Corchete Novus 23/15 (caja 1000 unid)', unit: 3000 },
+  { desc: 'Corchete Torre 26/6 uso oficina (caja 5000 unid)', unit: 1584 },
+  { desc: 'Dedal de Goma Azul N°11 (bolsa 12 unid)', unit: 2969 },
+  { desc: 'Dedal de Goma Verde N°12 (bolsa 12 unid)', unit: 2969 },
+  { desc: 'Dedal de Goma Rojo N°12 (bolsa 12 unid)', unit: 2969 },
+  { desc: 'Rollo Térmico 57x20 Mts 48 grs', unit: 660 },
+  { desc: 'Rollo Térmico WL 80x80 Mts 48 grs', unit: 2235 },
+  { desc: 'Film Manual WL 50 cm x 20 micras (130 Mts)', unit: 4869 },
+  { desc: 'Guantes de Nitrilo Talla L (caja 100 unid)', unit: 4760 },
+  { desc: 'Guantes de Nitrilo Talla M (caja 100 unid)', unit: 4760 },
+  { desc: 'Kraft Rollito Envolver 35 grs (20 cm x 230 Mts)', unit: 3826 },
+  { desc: 'Kraft Rollito Envolver 35 grs (40 cm x 230 Mts)', unit: 7500 },
+  { desc: 'Kraft Rollito Envolver 35 grs (57 cm x 230 Mts)', unit: 10582 },
+  { desc: 'Cajas Cartón Gris Tarjetas de Visita (10 unid/bolsa)', unit: 331 },
+  { desc: 'Cajas Cartón Kraft Tarjetas de Visita (10 unid/bolsa)', unit: 331 },
+  { desc: 'Otro (ingresar manualmente)', unit: 0 },
+];
+
+let rowCount = 0;
+const fmt = n => '$' + Math.round(n).toLocaleString('es-CL');
+
+function addRow(desc='', qty=1, price=0) {
+  rowCount++;
+  const id = rowCount;
+  const tbody = document.getElementById('items-body');
+  const tr = document.createElement('tr');
+  tr.id = 'row-'+id;
+
+  const opts = CATALOG.map((p,i) =>
+    `<option value="${i}" ${p.desc===desc?'selected':''}>${p.desc}</option>`
+  ).join('');
+
+  tr.innerHTML = `
+    <td style="color:var(--ink-3);font-family:'DM Mono',monospace;font-size:12px;">${id}</td>
+    <td style="min-width:200px;">
+      <select onchange="onSelectProduct(${id}, this)" style="font-size:13px;">
+        <option value="-1">— Seleccionar producto —</option>
+        ${opts}
+      </select>
+    </td>
+    <td><input type="number" min="1" value="${qty}" onchange="calcRow(${id})" oninput="calcRow(${id})" style="width:60px;"></td>
+    <td><input type="number" min="0" value="${price}" onchange="calcRow(${id})" oninput="calcRow(${id})" placeholder="0"></td>
+    <td class="td-total" id="total-${id}">${fmt(qty*price)}</td>
+    <td class="td-del"><button class="del-btn" onclick="delRow(${id})" title="Eliminar">×</button></td>`;
+  tbody.appendChild(tr);
+  calcTotals();
+}
+
+function onSelectProduct(id, sel) {
+  const idx = +sel.value;
+  if (idx < 0) return;
+  const prod = CATALOG[idx];
+  const row = document.getElementById('row-'+id);
+  row.querySelectorAll('input[type=number]')[1].value = prod.unit;
+  calcRow(id);
+}
+
+function calcRow(id) {
+  const row = document.getElementById('row-'+id);
+  const inputs = row.querySelectorAll('input[type=number]');
+  const qty   = parseFloat(inputs[0].value) || 0;
+  const price = parseFloat(inputs[1].value) || 0;
+  document.getElementById('total-'+id).textContent = fmt(qty * price);
+  calcTotals();
+}
+
+function delRow(id) {
+  const row = document.getElementById('row-'+id);
+  if (row) row.remove();
+  calcTotals();
+}
+
+function calcTotals() {
+  let neto = 0;
+  document.querySelectorAll('#items-body tr').forEach(tr => {
+    const tot = tr.querySelector('.td-total');
+    if (tot) {
+      const val = parseFloat(tot.textContent.replace(/\./g,'').replace('$','').replace(/\s/g,'')) || 0;
+      neto += val;
+    }
+  });
+  const iva   = neto * 0.19;
+  const total = neto + iva;
+  document.getElementById('t-neto').textContent  = fmt(neto);
+  document.getElementById('t-iva').textContent   = fmt(iva);
+  document.getElementById('t-total').textContent = fmt(total);
+}
+
+function clearAll() {
+  if (!confirm('¿Limpiar toda la cotización y comenzar de nuevo?')) return;
+  document.getElementById('items-body').innerHTML = '';
+  rowCount = 0;
+  ['cli-nombre','cli-rut','cli-giro','cli-contacto','cli-tel','cli-email'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('num-cot').value = String(Date.now()).slice(-4);
+  calcTotals();
+  addRow(); addRow();
+}
+
+// Set today's date
+const today = new Date();
+const pad = n => String(n).padStart(2,'0');
+const todayStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+document.getElementById('fecha-cot').value = todayStr;
+const validDate = new Date(today); validDate.setDate(validDate.getDate()+7);
+document.getElementById('fecha-val').value = validDate.getFullYear()+'-'+pad(validDate.getMonth()+1)+'-'+pad(validDate.getDate());
+document.getElementById('num-cot').value = pad(today.getMonth()+1) + pad(today.getDate()) + '01';
+
+// Init with 3 empty rows
+addRow(); addRow(); addRow();
+</script>
+</body>
+</html>
